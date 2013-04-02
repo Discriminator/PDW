@@ -1,0 +1,279 @@
+# Microsoft Developer Studio Generated Dependency File, included by PDW.mak
+
+.\acars.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\sound_in.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\utils\binary.cpp : \
+	".\utils\binary.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\utils\Debug.cpp : \
+	".\utils\debug.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\decode.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\ermes.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\mobitex.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\toolbar.h"\
+	".\utils\debug.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\ermes.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\ermes.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\mobitex.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\sound_in.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Flex.cpp : \
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\sound_in.h"\
+	".\utils\debug.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Gfx.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\Resource.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\helper_funcs.cpp : \
+	".\Headers\helper_funcs.h"\
+	".\utils\debug.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Initapp.cpp : \
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\Resource.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\language.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\language.h"\
+	".\Headers\menu.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\printer.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\sound_in.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\menu.cpp : \
+	".\Headers\decode.h"\
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\language.h"\
+	".\Headers\menu.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\printer.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\sound_in.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Misc.cpp : \
+	".\Headers\decode.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\language.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\utils\binary.h"\
+	".\utils\smtp.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\mobitex.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\mobitex.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\sound_in.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\utils\Ostype.cpp : \
+	".\utils\debug.h"\
+	".\utils\ostype.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\PDW.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\ermes.h"\
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\initapp.h"\
+	".\Headers\language.h"\
+	".\Headers\menu.h"\
+	".\Headers\misc.h"\
+	".\Headers\mobitex.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\printer.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\sound_in.h"\
+	".\Headers\toolbar.h"\
+	".\utils\debug.h"\
+	".\utils\ostype.h"\
+	".\utils\rs232.h"\
+	".\utils\smtp.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Pocsag.cpp : \
+	".\Headers\gfx.h"\
+	".\Headers\helper_funcs.h"\
+	".\Headers\misc.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\sound_in.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\printer.cpp : \
+	".\Headers\decode.h"\
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\printer.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\sound_in.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\utils\rs232.cpp : \
+	".\Headers\Slicer.h"\
+	".\utils\debug.h"\
+	".\utils\ostype.h"\
+	".\utils\rs232.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\Rsrc.rc : \
+	".\Gfx\close.bmp"\
+	".\Gfx\clr.bmp"\
+	".\Gfx\copy.bmp"\
+	".\Gfx\cpyLO.bmp"\
+	".\Gfx\cpyUP.bmp"\
+	".\Gfx\cursor1.cur"\
+	".\Gfx\filter.bmp"\
+	".\Gfx\help.BMP"\
+	".\Gfx\mode.bmp"\
+	".\Gfx\open.bmp"\
+	".\Gfx\options.bmp"\
+	".\Gfx\pause.bmp"\
+	".\Gfx\pdw.ico"\
+	".\Gfx\pdwlogo2.bmp"\
+	".\Gfx\prt.bmp"\
+	".\Gfx\save.bmp"\
+	".\Gfx\sigind.bmp"\
+	".\Gfx\stats.bmp"\
+	".\Headers\Resource.h"\
+	
+
+.\sigind.cpp : \
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\Slicer.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\utils\smtp.cpp : \
+	".\Headers\Pdw.h"\
+	".\utils\debug.h"\
+	".\utils\smtp.h"\
+	".\utils\smtp_int.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\sound_in.cpp : \
+	".\Headers\acars.h"\
+	".\Headers\decode.h"\
+	".\Headers\ermes.h"\
+	".\Headers\gfx.h"\
+	".\Headers\initapp.h"\
+	".\Headers\misc.h"\
+	".\Headers\mobitex.h"\
+	".\Headers\Pdw.h"\
+	".\Headers\Resource.h"\
+	".\Headers\sigind.h"\
+	".\Headers\sound_in.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	
+
+.\toolbar.cpp : \
+	".\Headers\Resource.h"\
+	".\Headers\toolbar.h"\
+	"c:\program files\microsoft visual studio\vc98\include\basetsd.h"\
+	

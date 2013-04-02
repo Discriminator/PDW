@@ -1,0 +1,54 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: PDW3_0 - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\Shack\LOCALS~1\Temp\RSP85.tmp" with contents
+[
+/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /Fp"Release/PDW.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"D:\Projects\PDW\mobitex.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\Shack\LOCALS~1\Temp\RSP85.tmp" 
+Creating temporary file "C:\DOCUME~1\Shack\LOCALS~1\Temp\RSP86.tmp" with contents
+[
+winmm.lib comdlg32.lib comctl32.lib ws2_32.lib gdi32.lib user32.lib shell32.lib wininet.lib kernel32.lib shell32.lib libcmt.lib oldnames.lib libcpmt.lib /nologo /subsystem:windows /incremental:no /pdb:"Release/PDW3_0.pdb" /map:"Release/PDW3_0.map" /machine:I386 /out:"Release/PDW3_0.exe" 
+.\Release\acars.obj
+.\Release\binary.obj
+.\Release\Debug.obj
+.\Release\decode.obj
+.\Release\ermes.obj
+.\Release\Flex.obj
+.\Release\Gfx.obj
+.\Release\helper_funcs.obj
+.\Release\Initapp.obj
+.\Release\language.obj
+.\Release\menu.obj
+.\Release\Misc.obj
+.\Release\mobitex.obj
+.\Release\Ostype.obj
+.\Release\PDW.obj
+.\Release\Pocsag.obj
+.\Release\printer.obj
+.\Release\rs232.obj
+.\Release\sigind.obj
+.\Release\smtp.obj
+.\Release\sound_in.obj
+.\Release\toolbar.obj
+.\Release\Rsrc.res
+]
+Creating command line "link.exe @C:\DOCUME~1\Shack\LOCALS~1\Temp\RSP86.tmp"
+<h3>Output Window</h3>
+Compiling...
+mobitex.cpp
+Linking...
+
+
+
+<h3>Results</h3>
+PDW3_0.exe - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>
