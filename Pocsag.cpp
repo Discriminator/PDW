@@ -39,7 +39,8 @@ unsigned int sr=0;
 
 bool bDoubleDisplay;
 
-char szRestAlphaBits[6]="";
+#define REST_ALPHA_BITS_LEN	6
+char szRestAlphaBits[REST_ALPHA_BITS_LEN]="";
 
 extern unsigned long hourly_stat[NUM_STAT][2];
 extern unsigned long hourly_char[NUM_STAT][2];
@@ -212,7 +213,7 @@ void POCSAG::process_word(int fn2)
 		}
 		wordc++;
 
-		int restbits = (20*wordc) % 7;
+		int restbits = (20*wordc) % REST_ALPHA_BITS_LEN;
 		int startbit = 21-restbits;
 		strncpy(szRestAlphaBits, &ob[startbit], restbits);
 		szRestAlphaBits[restbits] = '\0';
