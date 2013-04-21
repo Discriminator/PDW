@@ -6881,7 +6881,7 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 					while (index != CB_ERR)
 					{
-						Profile.filters.erase(&Profile.filters[index]);
+						Profile.filters.erase(Profile.filters.begin()+index);
 						ListView_DeleteItem(hListView, index) ;
 						index = ListView_GetNextItem(hListView, index-1, LVNI_SELECTED) ;
 						pumpMessages();	// Process messages
@@ -8402,7 +8402,7 @@ BOOL FAR PASCAL FilterEditDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 				if (!bEditFilter)	// If we are adding a new filter
 				{
 					ListView_SetItemState(hListView, index++, 0, LVIS_SELECTED | LVIS_FOCUSED); // Deselect current
-					Profile.filters.insert(&Profile.filters[index], filter);
+					Profile.filters.insert(Profile.filters.begin() + index, filter);
 				}
 
 				if (strncmp(temp_cap, "Don't cha", 9))	// If not "Don't cha(nge)"
@@ -9882,7 +9882,8 @@ bool ReadFilters(char *szFilters, PPROFILE pProfile, bool bNew)
 						}
 						else break;
 					}
-					Profile.filters.insert(&Profile.filters[iFilter++], filter);
+					Profile.filters.insert(Profile.filters.begin() + iFilter, filter);
+					iFilter++;
 				}
 			}
 			if (bError) return(false);
@@ -10679,13 +10680,13 @@ void OnLButtonUp(UINT nFlags, int x, int y)
 		iRet = ListView_InsertItem(hListView, &lvi);
 
 		Copy_Filter_Fields(&filter, Profile.filters[iPos]);
-		Profile.filters.insert(&Profile.filters[lvhti.iItem], filter);
+		Profile.filters.insert(Profile.filters.begin() + lvhti.iItem, filter);
 
 		if (lvi.iItem < iPos)  lvhti.iItem++;
 		if (iRet <= iPos) iPos++;
 		// Delete from original position
 		ListView_DeleteItem(hListView, iPos);
-		Profile.filters.erase(&Profile.filters[iPos]);
+		Profile.filters.erase(Profile.filters.begin() + iPos);
 		iPos = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
 		nCopyStart = nCopyEnd = -1 ;
 	}
@@ -10833,8 +10834,8 @@ void SortFilter(HWND hDlg, bool bAddress)
 			Copy_Filter_Fields(&filter, Profile.filters[index]);
 			BuildFilterString(szTEMP, Profile.filters[index]);
 
-			Profile.filters.erase (&Profile.filters[index]);
-			Profile.filters.insert(&Profile.filters[i], filter);
+			Profile.filters.erase (Profile.filters.begin() + index);
+			Profile.filters.insert(Profile.filters.begin() + i, filter);
 			ListView_DeleteItem(hListView, index);
 			InsertListViewItem(szTEMP, i);
 
@@ -10921,7 +10922,7 @@ void PasteFilter(void)
 		{
  			Copy_Filter_Fields(&filter, Profile.filters[item]);
 			BuildFilterString(szTEMP, filter);
-			Profile.filters.insert(&Profile.filters[nIndex], filter);
+			Profile.filters.insert(Profile.filters.begin() + nIndex, filter);
 
 			if (nIndex <= nCopyStart)
 			{
