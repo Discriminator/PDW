@@ -6599,18 +6599,21 @@ BOOL FAR PASCAL FilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 				}
 				else
 				{
-					strcat(szTEMP, Profile.filters[index].capcode);
+					if ( index < Profile.filters.size() )
+					{
+						strcat(szTEMP, Profile.filters[index].capcode);
 
-					if (Profile.filters[index].label[0])
-					{
-						strcat(szTEMP, " | ");
-						strcat(szTEMP, Profile.filters[index].label);
-					}
-					if (Profile.filters[index].text[0])
-					{
-						strcat(szTEMP, " | \"");
-						strcat(szTEMP, Profile.filters[index].text);
-						strcat(szTEMP, "\"");
+						if (Profile.filters[index].label[0])
+						{
+							strcat(szTEMP, " | ");
+							strcat(szTEMP, Profile.filters[index].label);
+						}
+						if (Profile.filters[index].text[0])
+						{
+							strcat(szTEMP, " | \"");
+							strcat(szTEMP, Profile.filters[index].text);
+							strcat(szTEMP, "\"");
+						}
 					}
 				}
 				SetWindowText(hDlg, (LPSTR) szTEMP);
