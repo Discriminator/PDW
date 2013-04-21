@@ -57,7 +57,8 @@ void GetFileNameWithoutExtension(char* filepath)
 	i=strrchr(filepath, '\\') - filepath+1;
 	j=strrchr(filepath, '.') - filepath;
 
-	for (int k=0; i<j; i++, k++)
+	int k=0;
+	for (k=0; i<j; i++, k++)
 	{
 		filepath[k]=filepath[i];
 	}

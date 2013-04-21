@@ -894,7 +894,8 @@ void frame_flex(char gin)
 
 			if (nOnes(slr[0] ^ slr[3] ^ 0xFFFF) < 2)
 			{
-				for (int speed=0; speed<8; speed++)
+				int speed;
+				for (speed=0; speed<8; speed++)
 				{
 					if ((nOnes(slr[0] ^ syncs[speed]) + nOnes(slr[3] ^ ~syncs[speed])) < 2)
 					{

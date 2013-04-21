@@ -498,7 +498,8 @@ void SortGroupCall(int groupbit)	// PH: Sort aGroupCodes[groupbit]
 {
 	for (int nCapcode=1; nCapcode <= aGroupCodes[groupbit][CAPCODES_INDEX]; nCapcode++)
 	{
-		for (int min=nCapcode, j=nCapcode+1; aGroupCodes[groupbit][j] > 0; j++)
+		int min, j;
+		for (min=nCapcode, j=nCapcode+1; aGroupCodes[groupbit][j] > 0; j++)
 		{
 			if (aGroupCodes[groupbit][j] < aGroupCodes[groupbit][min]) min = j;
 		}
@@ -2401,11 +2402,12 @@ int ecd()
 void setupecc()
 {
 	unsigned int srr, j, k;
+	int i, n;
 
 	// calculate all information needed to implement error correction
 	srr = 0x3B4;
 
-	for (int i=0; i<=20; i++)
+	for (i=0; i<=20; i++)
 	{
 		ecs[i] = srr;
 		if ((srr & 0x01) != 0) srr = (srr >> 1) ^ 0x3B4;
@@ -2417,7 +2419,7 @@ void setupecc()
 	// of second error; bits 12 & 13 tell how many bits are bad
 	for (i=0; i<1024; i++) bch[i] = 0;
 
-	for (int n=0; n<=20; n++)	// two errors in data
+	for (n=0; n<=20; n++)	// two errors in data
 	{
 		for (i=0; i<=20; i++)
 		{
