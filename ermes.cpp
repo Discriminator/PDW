@@ -114,7 +114,7 @@ int ERMES::nOnes(int k)
 */
 int ERMES::lOnes(long int k)
 {
-	int kt;
+	/*int kt;*/
 	for (int i=0, kt=0; i<32; i++)
 	{
 		if ((k & 0x0001l) != 0l) kt++;
