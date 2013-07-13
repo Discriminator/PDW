@@ -21,6 +21,7 @@
 // PH : Peter Hunt
 // RAH: Rutger A. Heunks
 // AVE: Andreas Verhoeven
+// DD : Danny D. 
 //
 // 06/04/2003 PH:  Added Short Instructions
 // 07/04/2003 PH:  Short Instructions / Frames optional via menu
@@ -254,7 +255,9 @@
 // 24/03/2010 : Version 2.60 released!!
 //
 // 10/08/2010 : Version 3.0 released!!
-//
+
+// 13/7/2013 DD: Updated About. web url. 
+// 13/7/2013 DD: Version 3.12 released!
 //
 // FILTERS.INI lines :
 //
@@ -408,7 +411,7 @@ time_t tStarted;	// Contains the time when PDW was started
 // If copy upper/lower pane or just copy is successful then this flag is set to TRUE.
 bool bOK_to_save=false;
 
-char *pdw_version = "PDW v3.11b15";		// Current version info
+char *pdw_version = "PDW v3.12";		// Current version info
 
 // RAH: record and playback stuff
 OPENFILENAME openplayback;
@@ -2801,7 +2804,7 @@ BOOL FAR PASCAL AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (LOWORD(wParam))
 		{
 			case IDC_WEBSITE:
-				ShellExecute(NULL, "open", "http://www.gsm-antennes.nl/PDW", NULL, NULL, SW_SHOWNORMAL);
+				ShellExecute(NULL, "open", "http://www.discriminator.nl/pdw/index-en.html", NULL, NULL, SW_SHOWNORMAL);
 
 			// fall through
 

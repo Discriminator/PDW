@@ -167,22 +167,24 @@ END
 // Dialog
 //
 
-ABOUTDLGBOX DIALOG DISCARDABLE  10, 10, 270, 87
+ABOUTDLGBOX DIALOG DISCARDABLE  10, 10, 282, 156
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "About..."
 FONT 8, "Verdana"
 BEGIN
-    GROUPBOX        "",IDC_STATIC,2,0,265,83
-    LTEXT           "PDW version",IDC_VERSION,86,15,72,8
+    GROUPBOX        "",IDC_STATIC,0,0,75,114,NOT WS_VISIBLE
+    LTEXT           "PDW version",IDC_VERSION,81,6,72,8
     LTEXT           "POCSAG, FLEX, ACARS, MOBITEX && ERMES Decoder",
-                    IDC_STATIC,86,30,175,8
-    LTEXT           "Copyright (c) 2001 - 2004 Jason Petty",IDC_STATIC,86,45,
+                    IDC_STATIC,78,19,175,8
+    LTEXT           "Copyright (c) 2001 - 2004 Jason Petty",IDC_STATIC,79,33,
                     126,8
-    LTEXT           "2004 - 2010 Peter Hunt",IDC_STATIC,132,55,100,8
+    LTEXT           "2004 - 2010 Peter Hunt",IDC_STATIC,122,45,100,8
     LTEXT           "Win2k/XP RS232 support by: Herman Withaar",IDC_STATIC,
-                    86,69,152,8
-    PUSHBUTTON      "Visit PDW website",IDC_WEBSITE,7,64,68,15
+                    113,106,152,8
+    PUSHBUTTON      "Visit PDW website",IDC_WEBSITE,121,68,68,15
+    LTEXT           "2013 GNU GENERAL PUBLIC LICENSE",IDC_STATIC,124,57,124,
+                    8
 END
 
 CLEARSCREENDLGBOX DIALOG DISCARDABLE  30, 20, 113, 66
@@ -1112,7 +1114,8 @@ GUIDELINES DESIGNINFO DISCARDABLE
 BEGIN
     ABOUTDLGBOX, DIALOG
     BEGIN
-        RIGHTMARGIN, 267
+        RIGHTMARGIN, 265
+        BOTTOMMARGIN, 114
     END
 
     DEBUGDLGBOX, DIALOG
