@@ -2,6 +2,7 @@ PDW - POCSAG, FLEX, ACARS, MOBITEX & ERMES Decoder
 
 Copyright (c) 2001 - 2004 Jason Petty
 Copyright (c) 2004 - 2010 Peter Hunt
+Open sourced 2013 - GNU GENERAL PUBLIC LICENSE
 
 PDW has been developed with Visual C++ 6.0. You may have to make adaptations to compile it with newer C++ versions. 
 
