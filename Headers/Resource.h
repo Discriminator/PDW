@@ -420,6 +420,7 @@
 #define IDC_SMTP_EMAILS           1244
 #define IDC_SMTP_ERRORS           1245
 #define IDC_SMTP_LASTERROR        1246
+#define IDC_SMTP_SSL			  1247
 
 #define IDS_SIGIND                1250
 #define IDS_EXCLAM                1251

@@ -11,8 +11,13 @@
 #include "smtp.h"
 #include "..\utils\debug.h"
 
+#include "openssl\ssl.h"
+#include "openssl\err.h"
+
+#define MY_BUFF_SIZE 1024
+
 static SOCKET smtp_socket = INVALID_SOCKET;
-static char buf[BUFSIZ];
+static char buf[MY_BUFF_SIZE];
 
 static HANDLE MailThread ;
 static THEMAIL mail ;
@@ -21,7 +26,7 @@ static BOOL keepbusy = TRUE ;
 static BOOL bWsaStartup ;
 
 #define MAX_MAIL		100
-#define MAX_MAIL_LEN	512
+#define MAX_MAIL_LEN	1024
 
 static char szMailBuffer[MAX_MAIL][MAX_MAIL_LEN] ;
 static int  nBufferdMailStart ;
@@ -31,6 +36,10 @@ static byte dtable[256];
 
 extern int nSMTPerrors;
 extern int iSMTPlastError;
+
+//SSL
+SSL_CTX*      m_ctx;
+SSL*          m_ssl;
 
 
 char *szSmtpCharSets[] = {
@@ -64,6 +73,382 @@ char *szSmtpCharSets[] = {
 	"windows-1258 (Vietnamese Windows)"
 } ;
 
+enum SSLError
+{
+	CSMTP_NO_ERROR = 0,
+	WSA_STARTUP = 100, // WSAGetLastError()
+	WSA_VER,
+	WSA_SEND,
+	WSA_RECV,
+	WSA_CONNECT,
+	WSA_GETHOSTBY_NAME_ADDR,
+	WSA_INVALID_SOCKET,
+	WSA_HOSTNAME,
+	WSA_IOCTLSOCKET,
+	WSA_SELECT,
+	BAD_IPV4_ADDR,
+	UNDEF_MSG_HEADER = 200,
+	UNDEF_MAIL_FROM,
+	UNDEF_SUBJECT,
+	UNDEF_RECIPIENTS,
+	UNDEF_LOGIN,
+	UNDEF_PASSWORD,
+	BAD_LOGIN_PASSWORD,
+	BAD_DIGEST_RESPONSE,
+	BAD_SERVER_NAME,
+	UNDEF_RECIPIENT_MAIL,
+	COMMAND_MAIL_FROM = 300,
+	COMMAND_EHLO,
+	COMMAND_AUTH_PLAIN,
+	COMMAND_AUTH_LOGIN,
+	COMMAND_AUTH_CRAMMD5,
+	COMMAND_AUTH_DIGESTMD5,
+	COMMAND_DIGESTMD5,
+	COMMAND_DATA,
+	COMMAND_QUIT,
+	COMMAND_RCPT_TO,
+	MSG_BODY_ERROR,
+	CONNECTION_CLOSED = 400, // by server
+	SERVER_NOT_READY, // remote server
+	SERVER_NOT_RESPONDING,
+	SELECT_TIMEOUT,
+	FILE_NOT_EXIST,
+	MSG_TOO_BIG,
+	BAD_LOGIN_PASS,
+	UNDEF_XYZ_RESPONSE,
+	LACK_OF_MEMORY,
+	TIME_ERROR,
+	RECVBUF_IS_EMPTY,
+	SENDBUF_IS_EMPTY,
+	OUT_OF_MSG_RANGE,
+	COMMAND_EHLO_STARTTLS,
+	SSL_PROBLEM,
+	COMMAND_DATABLOCK,
+	STARTTLS_NOT_SUPPORTED,
+	LOGIN_NOT_SUPPORTED
+};
+
+int initOpenSSL()
+{
+	SSL_library_init();
+	SSL_load_error_strings();
+	m_ctx = SSL_CTX_new (SSLv23_client_method());
+	if(m_ctx == NULL)
+		return SSL_PROBLEM;
+
+	return CSMTP_NO_ERROR;
+}
+
+
+#define TIME_IN_SEC		3*60	// how long client will wait for server response in non-blocking mode
+
+int openSSLConnect()
+{
+	if(m_ctx == NULL)
+		return SSL_PROBLEM;
+
+	m_ssl = SSL_new (m_ctx);   
+	if(m_ssl == NULL)
+		return SSL_PROBLEM;
+
+	SSL_set_fd (m_ssl, (int)smtp_socket);
+	SSL_set_mode(m_ssl, SSL_MODE_AUTO_RETRY);
+
+	int res = 0;
+	fd_set fdwrite;
+	fd_set fdread;
+	int write_blocked = 0;
+	int read_blocked = 0;
+
+	timeval time;
+	time.tv_sec = TIME_IN_SEC;
+	time.tv_usec = 0;
+
+	while(1)
+	{
+		FD_ZERO(&fdwrite);
+		FD_ZERO(&fdread);
+
+		if(write_blocked)
+			FD_SET(smtp_socket, &fdwrite);
+		if(read_blocked)
+			FD_SET(smtp_socket, &fdread);
+
+		if(write_blocked || read_blocked)
+		{
+			write_blocked = 0;
+			read_blocked = 0;
+			if((res = select(smtp_socket+1,&fdread,&fdwrite,NULL,&time)) == SOCKET_ERROR)
+			{
+				FD_ZERO(&fdwrite);
+				FD_ZERO(&fdread);
+				return WSA_SELECT;
+			}
+			if(!res)
+			{
+				//timeout
+				FD_ZERO(&fdwrite);
+				FD_ZERO(&fdread);
+				return SERVER_NOT_RESPONDING;
+			}
+		}
+		res = SSL_connect(m_ssl);
+		switch(SSL_get_error(m_ssl, res))
+		{
+		case SSL_ERROR_NONE:
+			FD_ZERO(&fdwrite);
+			FD_ZERO(&fdread);
+			return CSMTP_NO_ERROR;
+			break;
+
+		case SSL_ERROR_WANT_WRITE:
+			write_blocked = 1;
+			break;
+
+		case SSL_ERROR_WANT_READ:
+			read_blocked = 1;
+			break;
+
+		default:	      
+			FD_ZERO(&fdwrite);
+			FD_ZERO(&fdread);
+			return SSL_PROBLEM;
+		}
+	}
+
+	return CSMTP_NO_ERROR;
+}
+
+
+void cleanupOpenSSL()
+{
+	if(m_ssl != NULL)
+	{
+		SSL_shutdown (m_ssl);  /* send SSL/TLS close_notify */
+		SSL_free (m_ssl);
+		m_ssl = NULL;
+	}
+	if(m_ctx != NULL)
+	{
+		SSL_CTX_free (m_ctx);	
+		m_ctx = NULL;
+		ERR_remove_state(0);
+		ERR_free_strings();
+		EVP_cleanup();
+		CRYPTO_cleanup_all_ex_data();
+	}
+}
+
+
+#define SEND_RECIEVE_TO 5*60
+
+int receiveData_SSL(SSL* ssl, char* buf)
+{
+	int res = 0;
+	int offset = 0;
+	fd_set fdread;
+	fd_set fdwrite;
+	timeval time;
+
+	int read_blocked_on_write = 0;
+
+	time.tv_sec = SEND_RECIEVE_TO;
+	time.tv_usec = 0;
+
+	if(buf == NULL)
+		return RECVBUF_IS_EMPTY;
+
+	bool bFinish = false;
+
+	while(!bFinish)
+	{
+		FD_ZERO(&fdread);
+		FD_ZERO(&fdwrite);
+
+		FD_SET(smtp_socket,&fdread);
+
+		if(read_blocked_on_write)
+		{
+			FD_SET(smtp_socket, &fdwrite);
+		}
+
+		if((res = select(smtp_socket+1, &fdread, &fdwrite, NULL, &time)) == SOCKET_ERROR)
+		{
+			FD_ZERO(&fdread);
+			FD_ZERO(&fdwrite);
+			return WSA_SELECT;
+		}
+
+		if(!res)
+		{
+			//timeout
+			FD_ZERO(&fdread);
+			FD_ZERO(&fdwrite);
+			return SERVER_NOT_RESPONDING;
+		}
+
+		if(FD_ISSET(smtp_socket,&fdread) || (read_blocked_on_write && FD_ISSET(smtp_socket,&fdwrite)) )
+		{
+			while(1)
+			{
+				read_blocked_on_write=0;
+
+				const int buff_len = 1024;
+				char buff[buff_len];
+
+				res = SSL_read(ssl, buff, buff_len);
+
+				int ssl_err = SSL_get_error(ssl, res);
+				if(ssl_err == SSL_ERROR_NONE)
+				{
+					if(offset + res > MY_BUFF_SIZE - 1)
+					{
+						FD_ZERO(&fdread);
+						FD_ZERO(&fdwrite);
+						return LACK_OF_MEMORY;
+					}
+					memcpy(buf + offset, buff, res);
+					offset += res;
+					if(SSL_pending(ssl))
+					{
+						continue;
+					}
+					else
+					{
+						bFinish = true;
+						break;
+					}
+				}
+				else if(ssl_err == SSL_ERROR_ZERO_RETURN)
+				{
+					bFinish = true;
+					break;
+				}
+				else if(ssl_err == SSL_ERROR_WANT_READ)
+				{
+					break;
+				}
+				else if(ssl_err == SSL_ERROR_WANT_WRITE)
+				{
+					/* We get a WANT_WRITE if we're
+					trying to rehandshake and we block on
+					a write during that rehandshake.
+
+					We need to wait on the socket to be 
+					writeable but reinitiate the read
+					when it is */
+					read_blocked_on_write=1;
+					break;
+				}
+				else
+				{
+					FD_ZERO(&fdread);
+					FD_ZERO(&fdwrite);
+					return SSL_PROBLEM;
+				}
+			}
+		}
+	}
+
+	FD_ZERO(&fdread);
+	FD_ZERO(&fdwrite);
+	buf[offset] = 0;
+	if(offset == 0)
+	{
+		return CONNECTION_CLOSED;
+	}
+
+	return CSMTP_NO_ERROR;
+}
+
+int sendData_SSL(SSL* ssl, char *buf)
+{
+	int offset = 0,res,nLeft = strlen(buf);
+	fd_set fdwrite;
+	fd_set fdread;
+	timeval time;
+
+	int write_blocked_on_read = 0;
+
+	time.tv_sec = SEND_RECIEVE_TO; 
+	time.tv_usec = 0;
+
+
+	if(buf == NULL)
+		return SENDBUF_IS_EMPTY;
+
+	while(nLeft > 0)
+	{
+		FD_ZERO(&fdwrite);
+		FD_ZERO(&fdread);
+
+		FD_SET(smtp_socket,&fdwrite);
+
+		if(write_blocked_on_read)
+		{
+			FD_SET(smtp_socket, &fdread);
+		}
+
+		if((res = select(smtp_socket+1,&fdread,&fdwrite,NULL,&time)) == SOCKET_ERROR)
+		{
+			FD_ZERO(&fdwrite);
+			FD_ZERO(&fdread);
+			return WSA_SELECT;
+		}
+
+		if(!res)
+		{
+			//timeout
+			FD_ZERO(&fdwrite);
+			FD_ZERO(&fdread);
+			return SERVER_NOT_RESPONDING;
+		}
+
+		if(FD_ISSET(smtp_socket,&fdwrite) || (write_blocked_on_read && FD_ISSET(smtp_socket, &fdread)) )
+		{
+			write_blocked_on_read=0;
+
+			/* Try to write */
+			res = SSL_write(ssl, buf+offset, nLeft);
+	          
+			switch(SSL_get_error(ssl,res))
+			{
+			  /* We wrote something*/
+			  case SSL_ERROR_NONE:
+				nLeft -= res;
+				offset += res;
+				break;
+	              
+				/* We would have blocked */
+			  case SSL_ERROR_WANT_WRITE:
+				break;
+
+				/* We get a WANT_READ if we're
+				   trying to rehandshake and we block on
+				   write during the current connection.
+	               
+				   We need to wait on the socket to be readable
+				   but reinitiate our write when it is */
+			  case SSL_ERROR_WANT_READ:
+				write_blocked_on_read=1;
+				break;
+	              
+				  /* Some other error */
+			  default:	      
+				FD_ZERO(&fdread);
+				FD_ZERO(&fdwrite);
+				return SSL_PROBLEM;
+			}
+
+		}
+	}
+
+	OutputDebugStringA(buf);
+	FD_ZERO(&fdwrite);
+	FD_ZERO(&fdread);
+
+	return CSMTP_NO_ERROR;
+}
 	
 char *EncodeBase64(char *szIn, char *szOut)
 {
@@ -318,6 +703,10 @@ int sockPuts(SOCKET sock,char *str)
 {
 // 	OUTPUTDEBUGMSG((("sockPuts() : %s\n"), str));
 	AddResponse(str) ;
+
+	if (m_ssl != NULL)
+		return sendData_SSL(m_ssl,str);
+
 	return(sockWrite(sock,str,strlen(str)));
 }
 
@@ -331,8 +720,10 @@ int sockGets(SOCKET sockfd,char *str,size_t count)
 	currentPosition = str;
 	while(lastRead != 10) {
 		bytesRead=recv(sockfd,buf,1,0);
+		OUTPUTDEBUGMSG((("%s,%d\n"), __FILE__, bytesRead));
 		if(bytesRead <= 0) {
 			// the other side may have closed unexpectedly
+			OUTPUTDEBUGMSG((("ERRNO:%d\n"), WSAGetLastError()));
 			return (-1);
 		}
 		lastRead=buf[0];
@@ -352,6 +743,7 @@ int sockGets(SOCKET sockfd,char *str,size_t count)
 // disconnect to SMTP server and returns the socket fd
 static void smtpDisconnect(SOCKET sfd)
 {
+	cleanupOpenSSL();
 	closesocket(sfd) ;
 }
 
@@ -359,6 +751,7 @@ static void smtpDisconnect(SOCKET sfd)
 static SOCKET smtpConnect(char *smtp_server,int port)
 {
 	SOCKET sfd;
+	int res;
 	
 	sfd = clientSocket(smtp_server,port);
 	if(sfd == INVALID_SOCKET) {
@@ -371,6 +764,13 @@ static SOCKET smtpConnect(char *smtp_server,int port)
 	}
 	// save it. we'll need it to clean up
 	smtp_socket = sfd;
+
+	if (Profile.ssl) {
+		if ((res = initOpenSSL()) == CSMTP_NO_ERROR)
+			res = openSSLConnect();
+		OUTPUTDEBUGMSG(("SSL Connect res = %d\n",res));
+	}
+
 	return(sfd);
 }
 
@@ -378,10 +778,14 @@ static SOCKET smtpConnect(char *smtp_server,int port)
 static int smtpResponse(int sfd)
 {
 	int n, err ;
-	char buf[BUFSIZ], tmp[BUFSIZ] ;
+	char buf[MY_BUFF_SIZE], tmp[MY_BUFF_SIZE] ;
 
 	memset(buf,0,sizeof(buf));
-	n = sockGets(sfd, buf, sizeof(buf)-1);
+
+	if (m_ssl != NULL)
+		err = receiveData_SSL(m_ssl,buf);
+	else
+		n = sockGets(sfd, buf, sizeof(buf)-1);
 //	OUTPUTDEBUGMSG((("smtpResponse() : %s\n"),buf));
 	AddResponse(buf) ;
 	err = atoi(buf) ;
@@ -405,7 +809,7 @@ static int smtpResponse(int sfd)
 static int smtpHelo(int sfd)
 {
 	// read off the greeting 
-	smtpResponse(sfd);
+	//smtpResponse(sfd);
 	_snprintf(buf,sizeof(buf)-1,"HELO %s\r\n", mail.helo_domain);
 //	_snprintf(buf,sizeof(buf)-1,"EHLO %s\r\n", mail.helo_domain);
 	sockPuts(sfd,buf);

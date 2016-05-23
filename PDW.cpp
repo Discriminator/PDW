@@ -8882,6 +8882,7 @@ void SetMailOptions(HWND hDlg, int nOptions)
 	CheckDlgButton(hDlg, IDC_SMTP_MESSAGE, ((nOptions & MAIL_OPTION_MESSAGE) != 0)) ;
 	CheckDlgButton(hDlg, IDC_SMTP_LABEL,   ((nOptions & MAIL_OPTION_LABEL)   != 0)) ;
 	CheckDlgButton(hDlg, IDC_SMTP_AUTH,    ((nOptions & MAIL_OPTION_AUTH)    != 0)) ;
+	CheckDlgButton(hDlg, IDC_SMTP_SSL,    ((nOptions & MAIL_OPTION_SSL)    != 0)) ;
 
 	SendDlgItemMessage(hDlg, IDC_SMTP_SETTING, CB_SETCURSEL, nOptions & MAIL_OPTION_MODES, 0L) ;
 	tmp = ((nOptions & 0x3000) >> 12) - 1 ;
@@ -8923,6 +8924,7 @@ int GetMailOptions(HWND hDlg)
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_AUTH), ret) ;
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_SENDIN), ret) ;
 	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_CHARSET), ret) ;
+	EnableWindow(GetDlgItem(hDlg, IDC_SMTP_SSL), ret) ;
 
 	if(ret)
 	{
@@ -8941,6 +8943,7 @@ int GetMailOptions(HWND hDlg)
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_MESSAGE) ? MAIL_OPTION_MESSAGE : 0 ;
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_LABEL)   ? MAIL_OPTION_LABEL	 : 0 ;
 	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_AUTH)    ? MAIL_OPTION_AUTH	 : 0 ;
+	nOptions += IsDlgButtonChecked(hDlg, IDC_SMTP_SSL)    ? MAIL_OPTION_SSL		 : 0 ;
 
 	ret = SendDlgItemMessage(hDlg, IDC_SMTP_SENDIN, CB_GETCURSEL, 0, 0L);
 	if(ret == CB_ERR) ret = 0 ;
@@ -9041,6 +9044,7 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				Profile.iMailPort = GetDlgItemInt(hDlg, IDC_SMTP_PORT, NULL, FALSE);
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
 				Profile.SMTP = Profile.nMailOptions & MAIL_OPTION_ENABLE ? 1 : 0 ;
+				Profile.ssl =  Profile.nMailOptions & MAIL_OPTION_SSL ? 1 : 0 ;
 				MailInit(Profile.szMailHost, Profile.szMailHeloDomain, Profile.szMailFrom, Profile.szMailTo, Profile.szMailUser, Profile.szMailPassword, Profile.iMailPort, Profile.nMailOptions);
 				SendMail(0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) ;
 
@@ -9061,6 +9065,7 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				SendDlgItemMessage(hDlg, IDC_SMTP_PASSWORD, WM_GETTEXT, MAIL_TEXT_LEN, (LPARAM)(LPCTSTR) Profile.szMailPassword) ;
 				Profile.iMailPort = GetDlgItemInt(hDlg, IDC_SMTP_PORT, NULL, FALSE);
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
+				Profile.ssl =  Profile.nMailOptions & MAIL_OPTION_SSL ? 1 : 0 ;
 				if((Profile.nMailOptions & MAIL_OPTION_MODES) && (!(Profile.nMailOptions & ~MAIL_OPTION_MODES)))
 				{
 					break ;
@@ -9087,6 +9092,7 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			case IDC_SMTP_TYPE    :
 			case IDC_SMTP_MESSAGE :
 			case IDC_SMTP_BITRATE :
+			case IDC_SMTP_SSL	  :
 				Profile.nMailOptions = GetMailOptions(hDlg) ;
 				if((Profile.nMailOptions & MAIL_OPTION_MODES) && (!(Profile.nMailOptions & ~MAIL_OPTION_MODES)))
 				{
