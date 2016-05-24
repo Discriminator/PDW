@@ -231,6 +231,7 @@ typedef struct
 	BOOL reverse_msg;
 	int lang_mi_index;          // Decides language menu item.
 	int lang_tbl_index;         // Decides language character map.
+	bool ssl;
 } PROFILE, *PPROFILE;
 
 extern PROFILE Profile;     // profile information
