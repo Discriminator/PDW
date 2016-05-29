@@ -51,6 +51,8 @@
 #define MAIL_OPTION_WINDOWS_1257	0x1B0000
 #define MAIL_OPTION_WINDOWS_1258	0x1C0000
 
+#define MAIL_OPTION_SSL				0x200000
+
 #define MAX_SMTP_CHARSETS   28
 
 extern char *szSmtpCharSets[] ;

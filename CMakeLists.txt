@@ -19,6 +19,8 @@ set( PWD_SRCS )
 add_subdirectory( GFX )
 add_subdirectory( Headers )
 add_subdirectory( utils )
+include_directories( openssl-0.9.8l/inc32 )
+link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl-0.9.8l/out32 )
 
 # Microsoft Visual Studio Specific definitions
 if( MSVC )
@@ -55,14 +57,16 @@ set( PDW_SRCS
 )
 
 # Create executable
-add_executable( PDW WIN32
+add_executable( SOS WIN32
   ${PDW_INCLUDES}
   ${PDW_SRCS}
 )
 
 # Required libraries
-target_link_libraries( PDW
+target_link_libraries( SOS
   Comctl32.lib
   Winmm.lib
-  Ws2_32.lib 
+  Ws2_32.lib
+  libeay32.lib 
+  ssleay32.lib
 )
