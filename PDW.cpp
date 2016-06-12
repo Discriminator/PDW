@@ -9645,7 +9645,8 @@ BOOL GetPrivateProfileSettings(LPCTSTR lpszAppTitle, LPCTSTR lpszIniPathName, PP
 	GetPrivateProfileString("SMTP", TEXT("Password"), "", pProfile->szMailPassword, MAIL_TEXT_LEN, lpszIniPathName);
 	pProfile->iMailPort = (INT) GetPrivateProfileInt("SMTP", TEXT("Port"), 25, lpszIniPathName);
 	pProfile->nMailOptions = (INT) GetPrivateProfileInt("SMTP", TEXT("Options"), (MAIL_OPTION_ADDRESS | MAIL_OPTION_SUBJECT), lpszIniPathName);
-
+	pProfile->ssl = (INT) GetPrivateProfileInt("SMTP", TEXT("SSL"), 0, lpszIniPathName);
+	
 	MailInit(Profile.szMailHost, Profile.szMailHeloDomain, Profile.szMailFrom, Profile.szMailTo, Profile.szMailUser, Profile.szMailPassword, Profile.iMailPort, Profile.nMailOptions);
 
 	/***** Get Filter settings *****/
@@ -10101,6 +10102,7 @@ void WriteSettings()
 		fprintf(pFile, "Password=%s\n",					Profile.szMailPassword);
 		fprintf(pFile, "Port=%i\n",						Profile.iMailPort);
 		fprintf(pFile, "Options=%i\n",					Profile.nMailOptions);
+		fprintf(pFile, "SSL=%i\n",                      Profile.ssl);
 
 		fprintf(pFile, "\n[Filter]\n");
 		fprintf(pFile, "FilterFileEnabled=%i\n",		Profile.filterfile_enabled);
