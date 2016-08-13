@@ -57,13 +57,13 @@ set( PDW_SRCS
 )
 
 # Create executable
-add_executable( SOS WIN32
+add_executable( PDW WIN32
   ${PDW_INCLUDES}
   ${PDW_SRCS}
 )
 
 # Required libraries
-target_link_libraries( SOS
+target_link_libraries( PDW
   Comctl32.lib
   Winmm.lib
   Ws2_32.lib
