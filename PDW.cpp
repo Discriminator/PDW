@@ -21,7 +21,10 @@
 // PH : Peter Hunt
 // RAH: Rutger A. Heunks
 // AVE: Andreas Verhoeven
-// DD : Danny D. 
+// DD : Danny D.
+// AG : Andrey Grodzovsky
+// DNL: discriminator.nl
+// 
 //
 // 06/04/2003 PH:  Added Short Instructions
 // 07/04/2003 PH:  Short Instructions / Frames optional via menu
@@ -270,6 +273,9 @@
 // 4: 1=Label-enabled += label-color
 // 5: 1=SEP-enabled , 2=SEP-HTML , 4=SEP-FTP , 8=SMTP , 16=Match exact text
 //
+// 12-JUN-2016 AG : SSL support for SMTP mail client
+// 20-AUG-2016 DNL: Beta release 3.2b01
+//
 
 #ifndef STRICT
 #define STRICT 1
@@ -411,7 +417,7 @@ time_t tStarted;	// Contains the time when PDW was started
 // If copy upper/lower pane or just copy is successful then this flag is set to TRUE.
 bool bOK_to_save=false;
 
-char *pdw_version = "PDW v3.12";		// Current version info
+char *pdw_version = "PDW v3.2b01";		// Current version info
 
 // RAH: record and playback stuff
 OPENFILENAME openplayback;
