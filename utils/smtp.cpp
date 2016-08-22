@@ -809,7 +809,7 @@ static int smtpResponse(int sfd)
 static int smtpHelo(int sfd)
 {
 	// read off the greeting 
-	//smtpResponse(sfd);
+	 smtpResponse(sfd); // client should wait for greeting before sending HELO
 	_snprintf(buf,sizeof(buf)-1,"HELO %s\r\n", mail.helo_domain);
 //	_snprintf(buf,sizeof(buf)-1,"EHLO %s\r\n", mail.helo_domain);
 	sockPuts(sfd,buf);
