@@ -280,6 +280,10 @@
 #ifndef STRICT
 #define STRICT 1
 #endif
+#ifndef STRICT
+#define STRICT 1
+#endif
+
 
 #include <windows.h>
 #include <commctrl.h>
