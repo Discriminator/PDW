@@ -90,7 +90,7 @@ int GetOSType(TCHAR *szOS)
 	if(szOS) {
 		_tcscpy(szOS, szOSType) ;
 	}
-	//OUTPUTDEBUGMSG((TEXT("OS Type %d String =  >%s<"), nOSType, szOSType)) ;
+	OUTPUTDEBUGMSG((TEXT("OS Type %d String =  >%s<"), nOSType, szOSType)) ;
 
 
 //	return(OS_WIN95) ;
