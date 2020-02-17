@@ -64,8 +64,8 @@ int GetOSType(TCHAR *szOS)
 			case VER_PLATFORM_WIN32_NT :
 				if(OSVersionInfo.dwMajorVersion > 4) {
 					if(OSVersionInfo.dwMinorVersion > 0) {
-						nOSType = OS_WIN2001 ;
-						wsprintf(szOSType, TEXT("WIN2001 Version %ld.%02ld %s Build %u"), OSVersionInfo.dwMajorVersion, OSVersionInfo.dwMinorVersion,
+						nOSType = OS_WINXP; // original value => OS_WIN2001
+						wsprintf(szOSType, TEXT("OS_WINXP Version %ld.%02ld %s Build %u"), OSVersionInfo.dwMajorVersion, OSVersionInfo.dwMinorVersion,
 								OSVersionInfo.szCSDVersion, OSVersionInfo.dwBuildNumber & 0xFFFF) ;
 					}
 					else {				
