@@ -2,7 +2,7 @@
 #
 # Base build script for building with cmake (http://www.cmake.org)
 
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required( VERSION 3.5 )
 project( PDW )
 
 # Project version number
@@ -19,8 +19,8 @@ set( PWD_SRCS )
 add_subdirectory( GFX )
 add_subdirectory( Headers )
 add_subdirectory( utils )
-include_directories( openssl-0.9.8l/inc32 )
-link_directories( ${CMAKE_CURRENT_SOURCE_DIR}/openssl-0.9.8l/out32 )
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.0.2/include" )
+link_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.0.2/lib/VC/static" )
 
 # Microsoft Visual Studio Specific definitions
 if( MSVC )
@@ -53,8 +53,19 @@ set( PDW_SRCS
   toolbar.cpp
   printer.cpp
   sigind.cpp
-  sound_in.cpp  
+  sound_in.cpp
+  iob_shim.cpp
 )
+
+if( MSVC )
+  foreach( flag_var
+          CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+          CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
+          CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+          CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO )
+    string( REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}" )
+  endforeach()
+endif()
 
 # Create executable
 add_executable( PDW WIN32
@@ -67,6 +78,7 @@ target_link_libraries( PDW
   Comctl32.lib
   Winmm.lib
   Ws2_32.lib
-  libeay32.lib 
-  ssleay32.lib
+  libeay32MT.lib
+  ssleay32MT.lib
+  legacy_stdio_definitions.lib
 )
