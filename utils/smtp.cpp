@@ -132,7 +132,7 @@ int initOpenSSL()
 {
 	SSL_library_init();
 	SSL_load_error_strings();
-	m_ctx = SSL_CTX_new (SSLv23_client_method());
+	m_ctx = SSL_CTX_new (TLS_client_method());
 	if(m_ctx == NULL)
 		return SSL_PROBLEM;
 
@@ -232,10 +232,6 @@ void cleanupOpenSSL()
 	{
 		SSL_CTX_free (m_ctx);	
 		m_ctx = NULL;
-		ERR_remove_state(0);
-		ERR_free_strings();
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
 	}
 }
 
