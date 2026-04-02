@@ -5,6 +5,11 @@
 cmake_minimum_required( VERSION 3.5 )
 project( PDW )
 
+# Enforce Win32 (x86)
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  message( FATAL_ERROR "PDW must be built as 32-bit (Win32). Use -A Win32 with CMake." )
+endif()
+
 # Project version number
 set( PDW_VERSION_MAJOR 3 )
 set( PDW_VERSION_MINOR 1 )
@@ -19,8 +24,8 @@ set( PWD_SRCS )
 add_subdirectory( GFX )
 add_subdirectory( Headers )
 add_subdirectory( utils )
-include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.0.2/include" )
-link_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-1.0.2/lib/VC/static" )
+include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-3.5.5/include" )
+link_directories( "${CMAKE_CURRENT_SOURCE_DIR}/openssl-3.5.5/lib" )
 
 # Microsoft Visual Studio Specific definitions
 if( MSVC )
@@ -54,18 +59,7 @@ set( PDW_SRCS
   printer.cpp
   sigind.cpp
   sound_in.cpp
-  iob_shim.cpp
 )
-
-if( MSVC )
-  foreach( flag_var
-          CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-          CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO
-          CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-          CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO )
-    string( REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}" )
-  endforeach()
-endif()
 
 # Create executable
 add_executable( PDW WIN32
@@ -78,7 +72,9 @@ target_link_libraries( PDW
   Comctl32.lib
   Winmm.lib
   Ws2_32.lib
-  libeay32MT.lib
-  ssleay32MT.lib
+  libssl_static.lib
+  libcrypto_static.lib
   legacy_stdio_definitions.lib
+  Crypt32.lib
+  User32.lib
 )
