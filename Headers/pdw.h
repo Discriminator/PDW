@@ -6,7 +6,7 @@
 #define VER_BUILD 0
 
 #define FILTER_CAPCODE_LEN  9	// longest is FLEX long (9 chars)
-#define FILTER_LABEL_LEN    70	// PH: was 40
+#define FILTER_LABEL_LEN    256	// was 70, see issue #21
 #define FILTER_TEXT_LEN     40	// PH: was 25
 #define FILTER_FILE_LEN     128	// PH: was 256
 
