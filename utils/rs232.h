@@ -13,7 +13,7 @@
 
 
 
-EXTERN_C int rs232_connect(SLICER_IN_STR *pInSlicer, SLICER_OUT_STR *pOutSlicer);
+EXTERN_C int rs232_connect(const SLICER_IN_STR *pInSlicer, SLICER_OUT_STR *pOutSlicer);
 EXTERN_C int rs232_transmit_data(unsigned char buffer[], int nBytes);
 EXTERN_C int rs232_get_rx_data(unsigned char buffer[], int nBytes);
 EXTERN_C int rs232_disconnect(void);
