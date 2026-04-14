@@ -26,22 +26,24 @@ BYTE  byRS232Data[SLICER_BUFSIZE * (sizeof(WORD) + sizeof(BYTE))] ;
 
 #define assert(a)		if(!(a))  { OUTPUTDEBUGMSG(("SIMULATE ASSERT in file %s at %d\n", __FILE__, __LINE__ )); }
 
-int rs232_connect(SLICER_IN_STR *pInSlicer, SLICER_OUT_STR *pOutSlicer)
+int rs232_connect(const SLICER_IN_STR *pInSlicer, SLICER_OUT_STR *pOutSlicer)
 {
 	extern double ct1600;
 	int rc = RS232_NO_DUT;
-	char pcComPort[] = "COM1:";
-	DCB m_comDCB = { 0 } ;
-	COMMPROP ComProp = { 0 } ;
-	COMMTIMEOUTS ComTimeOuts = { 0 } ;
+	char pcComPort[32] = "COM1:";
+	DCB m_comDCB = {} ;
+	COMMPROP ComProp = {} ;
+	COMMTIMEOUTS ComTimeOuts = {} ;
 
 	// This as user can switch to slicer/rs232 without ports are close/opened (yet)
 	bOrgcomPortRS232 = Profile.comPortRS232 ;
 	if(pInSlicer->com_port > 9) {
-		sprintf(pcComPort, "\\\\.\\COM%d", pInSlicer->com_port) ;
+		_snprintf(pcComPort, sizeof(pcComPort) - 1, R"(\\.\COM%d)", pInSlicer->com_port) ;
+		pcComPort[sizeof(pcComPort) - 1] = '\0';
 	}
 	else {
-		sprintf(pcComPort, "COM%d", pInSlicer->com_port) ;
+		_snprintf(pcComPort, sizeof(pcComPort) - 1, "COM%d", pInSlicer->com_port) ;
+		pcComPort[sizeof(pcComPort) - 1] = '\0';
 	}
 
 	switch (Profile.comPortRS232)
@@ -319,9 +321,8 @@ BOOL m_bConnectedToComport2 = FALSE;
 int OpenComPort(void)
 {
 	int rc = RS232_NO_DUT;
-	char pcComPort[] = "COM1:";
-	DCB m_comDCB = { 0 } ;
-	COMMPROP ComProp = { 0 } ;
+	char pcComPort[32] = "COM1:";
+	DCB m_comDCB = {} ;
 
 	OUTPUTDEBUGMSG((("calling: OpenComPort()\n")));
 
