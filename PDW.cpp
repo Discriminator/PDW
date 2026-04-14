@@ -314,6 +314,7 @@
 #include "utils\debug.h"
 #include "utils\ostype.h"
 #include "utils\smtp.h"
+#include "utils\http_post.h"
 
 #include "headers\helper_funcs.h"	// Extra functies van Andreas
 
@@ -506,6 +507,14 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Profile.SystemTray	        = 0;	// Flag for enabeling the system tray
 	Profile.SystemTrayRestore	= 0;	// Flag for enabeling auto restore from tray
 	Profile.SMTP = 0;					// Flag for SMTP-email
+
+	Profile.http_post_enabled		= 0;
+	Profile.http_post_auth			= 0;
+	Profile.http_post_url[0]		= '\0';
+	Profile.http_post_user[0]		= '\0';
+	Profile.http_post_password[0]	= '\0';
+	Profile.http_post_queue_max		= 100;
+	Profile.http_post_queue_ttl		= 300;
 
 	Profile.FlexTIME			= 0;	// Flag for FlexTIME as systemtime
 	Profile.FlexGroupMode		= 0;
@@ -1471,6 +1480,11 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 												 hWnd, (DLGPROC) MailDlgProc, 0L);
 				break;
 
+				case IDM_HTTPPOST:
+					GoModalDialogBoxParam(ghInstance, MAKEINTRESOURCE(HTTPPOST_DLGBOX),
+												 hWnd, HttpPostDlgProc, 0L);
+				break;
+
 				case IDM_RELOAD:
 
 				if (FileExists(szFilterPathName))
@@ -1817,6 +1831,7 @@ LRESULT FAR PASCAL PDWWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 		// HWi, stop Mail thread.....
 		MailInit(NULL, NULL, NULL, NULL, NULL, NULL, 0, 0);
+		HttpPostShutdown();
 
 		if (bCapturing)	Stop_Capturing();		// Reset and close audio device.
 		if (bPlayback)	Stop_Playback();		// RAH: stop playback
@@ -9117,6 +9132,55 @@ BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return (FALSE);
 } // end of MailDlgProc
 
+BOOL FAR PASCAL HttpPostDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+		case WM_INITDIALOG:
+		if (!CenterWindow(hDlg)) return (FALSE);
+
+		SendDlgItemMessage(hDlg, IDC_HTTPPOST_URL, EM_LIMITTEXT, HTTP_POST_URL_LEN - 1, 0L);
+		SendDlgItemMessage(hDlg, IDC_HTTPPOST_USER, EM_LIMITTEXT, MAIL_TEXT_LEN - 1, 0L);
+		SendDlgItemMessage(hDlg, IDC_HTTPPOST_PASSWORD, EM_LIMITTEXT, MAIL_TEXT_LEN - 1, 0L);
+
+		CheckDlgButton(hDlg, IDC_HTTPPOST_ENABLE, Profile.http_post_enabled);
+		CheckDlgButton(hDlg, IDC_HTTPPOST_AUTH, Profile.http_post_auth);
+		SetDlgItemText(hDlg, IDC_HTTPPOST_URL, Profile.http_post_url);
+		SetDlgItemText(hDlg, IDC_HTTPPOST_USER, Profile.http_post_user);
+		SetDlgItemText(hDlg, IDC_HTTPPOST_PASSWORD, Profile.http_post_password);
+		SetDlgItemInt(hDlg, IDC_HTTPPOST_QUEUE_MAX, Profile.http_post_queue_max, FALSE);
+		SetDlgItemInt(hDlg, IDC_HTTPPOST_QUEUE_TTL, Profile.http_post_queue_ttl, FALSE);
+		return (TRUE);
+
+		case WM_COMMAND:
+		switch (LOWORD(wParam))
+		{
+			case IDOK:
+				Profile.http_post_enabled = IsDlgButtonChecked(hDlg, IDC_HTTPPOST_ENABLE) ? 1 : 0;
+				Profile.http_post_auth = IsDlgButtonChecked(hDlg, IDC_HTTPPOST_AUTH) ? 1 : 0;
+				SendDlgItemMessage(hDlg, IDC_HTTPPOST_URL, WM_GETTEXT, HTTP_POST_URL_LEN, (LPARAM)(LPCTSTR)Profile.http_post_url);
+				SendDlgItemMessage(hDlg, IDC_HTTPPOST_USER, WM_GETTEXT, MAIL_TEXT_LEN, (LPARAM)(LPCTSTR)Profile.http_post_user);
+				SendDlgItemMessage(hDlg, IDC_HTTPPOST_PASSWORD, WM_GETTEXT, MAIL_TEXT_LEN, (LPARAM)(LPCTSTR)Profile.http_post_password);
+				Profile.http_post_queue_max = GetDlgItemInt(hDlg, IDC_HTTPPOST_QUEUE_MAX, NULL, FALSE);
+				Profile.http_post_queue_ttl = GetDlgItemInt(hDlg, IDC_HTTPPOST_QUEUE_TTL, NULL, FALSE);
+
+				if (!Profile.http_post_queue_max) Profile.http_post_queue_max = 100;
+				if (!Profile.http_post_queue_ttl) Profile.http_post_queue_ttl = 300;
+
+				HttpPostInit(Profile.http_post_enabled, Profile.http_post_url, Profile.http_post_auth, Profile.http_post_user, Profile.http_post_password, Profile.http_post_queue_max, Profile.http_post_queue_ttl);
+				WriteSettings();
+				EndDialog(hDlg, TRUE);
+				return (TRUE);
+
+			case IDCANCEL:
+				EndDialog(hDlg, TRUE);
+				return (TRUE);
+		}
+		break;
+	}
+	return (FALSE);
+} // end of HttpPostDlgProc
+
 
 BOOL FAR PASCAL MonStatDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -9659,6 +9723,17 @@ BOOL GetPrivateProfileSettings(LPCTSTR lpszAppTitle, LPCTSTR lpszIniPathName, PP
 	
 	MailInit(Profile.szMailHost, Profile.szMailHeloDomain, Profile.szMailFrom, Profile.szMailTo, Profile.szMailUser, Profile.szMailPassword, Profile.iMailPort, Profile.nMailOptions);
 
+	/***** Get HTTP POST settings *****/
+	pProfile->http_post_enabled = static_cast<INT>(GetPrivateProfileInt("HTTPPost", TEXT("Enable"), 0, lpszIniPathName));
+	GetPrivateProfileString("HTTPPost", TEXT("Url"), "", pProfile->http_post_url, HTTP_POST_URL_LEN, lpszIniPathName);
+	pProfile->http_post_auth = static_cast<INT>(GetPrivateProfileInt("HTTPPost", TEXT("Auth"), 0, lpszIniPathName));
+	GetPrivateProfileString("HTTPPost", TEXT("User"), "", pProfile->http_post_user, MAIL_TEXT_LEN, lpszIniPathName);
+	GetPrivateProfileString("HTTPPost", TEXT("Password"), "", pProfile->http_post_password, MAIL_TEXT_LEN, lpszIniPathName);
+	pProfile->http_post_queue_max = static_cast<INT>(GetPrivateProfileInt("HTTPPost", TEXT("QueueMax"), 100, lpszIniPathName));
+	pProfile->http_post_queue_ttl = static_cast<INT>(GetPrivateProfileInt("HTTPPost", TEXT("QueueTTL"), 300, lpszIniPathName));
+
+	HttpPostInit(pProfile->http_post_enabled, pProfile->http_post_url, pProfile->http_post_auth, pProfile->http_post_user, pProfile->http_post_password, pProfile->http_post_queue_max, pProfile->http_post_queue_ttl);
+
 	/***** Get Filter settings *****/
 
 	pProfile->filterfile_enabled = (INT) GetPrivateProfileInt("Filter", TEXT("FilterFileEnabled"), pProfile->filterfile_enabled, lpszIniPathName);
@@ -10113,6 +10188,15 @@ void WriteSettings()
 		fprintf(pFile, "Port=%i\n",						Profile.iMailPort);
 		fprintf(pFile, "Options=%i\n",					Profile.nMailOptions);
 		fprintf(pFile, "SSL=%i\n",                      Profile.ssl);
+
+		fprintf(pFile, "\n[HTTPPost]\n");
+		fprintf(pFile, "Enable=%i\n",					Profile.http_post_enabled);
+		fprintf(pFile, "Url=%s\n",						Profile.http_post_url);
+		fprintf(pFile, "Auth=%i\n",						Profile.http_post_auth);
+		fprintf(pFile, "User=%s\n",						Profile.http_post_user);
+		fprintf(pFile, "Password=%s\n",					Profile.http_post_password);
+		fprintf(pFile, "QueueMax=%i\n",					Profile.http_post_queue_max);
+		fprintf(pFile, "QueueTTL=%i\n",					Profile.http_post_queue_ttl);
 
 		fprintf(pFile, "\n[Filter]\n");
 		fprintf(pFile, "FilterFileEnabled=%i\n",		Profile.filterfile_enabled);

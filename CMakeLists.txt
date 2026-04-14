@@ -72,6 +72,7 @@ target_link_libraries( PDW
         Comctl32.lib
         Winmm.lib
         Ws2_32.lib
+        Winhttp.lib
         libssl_static.lib
         libcrypto_static.lib
         legacy_stdio_definitions.lib

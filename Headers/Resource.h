@@ -27,6 +27,7 @@
 #define CLEARSCREENDLGBOX          123
 #define MAIL_DLGBOX                124
 #define SCREENOPTIONSDLGBOX        125
+#define HTTPPOST_DLGBOX            126
 
 #define IDM_LOGFILE                201
 #define IDM_EXIT                   202
@@ -43,6 +44,7 @@
 #define IDM_OPTIONS                230
 #define IDM_GENERAL                231
 #define IDM_MAIL                   232
+#define IDM_HTTPPOST               233
 
 #define IDM_FILTERS                240
 #define IDM_FILTEROPTIONS          241
@@ -439,3 +441,11 @@
 #define IDT_FILTERCHECKDUPLICATE  1306
 
 #define IDT_MENU_RESTORE          1310
+
+#define IDC_HTTPPOST_ENABLE       1320
+#define IDC_HTTPPOST_URL          1321
+#define IDC_HTTPPOST_AUTH         1322
+#define IDC_HTTPPOST_USER         1323
+#define IDC_HTTPPOST_PASSWORD     1324
+#define IDC_HTTPPOST_QUEUE_MAX    1325
+#define IDC_HTTPPOST_QUEUE_TTL    1326
