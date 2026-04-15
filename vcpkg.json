@@ -1,0 +1,7 @@
+{
+  "name": "pdw",
+  "version-string": "3.1.0",
+  "dependencies": [
+    "nlohmann-json"
+  ]
+}

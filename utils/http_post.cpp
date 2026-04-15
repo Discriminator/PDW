@@ -8,6 +8,8 @@
 #include "http_post.h"
 #include "../utils/debug.h"
 
+#include <nlohmann/json.hpp>
+
 #pragma comment(lib, "winhttp.lib")
 
 #define HTTPPOST_DEFAULT_QUEUE_MAX 100
@@ -381,39 +383,54 @@ int HttpPostQueueMessage(int bMatch, int bMonitorOnly,
 {
 	EnsureHttpState();
 
-	HTTPPOSTCONFIG cfg;
-	EnterCriticalSection(&g_httpLock);
-	cfg = g_httpConfig;
-	LeaveCriticalSection(&g_httpLock);
-
-	if (!cfg.enabled || cfg.url.empty()) return 0;
-
-	std::string json = "{";
-	json += "\"address\":\"" + JsonEscapeUtf8(sz1) + "\",";
-	json += "\"time\":\"" + JsonEscapeUtf8(sz2) + "\",";
-	json += "\"date\":\"" + JsonEscapeUtf8(sz3) + "\",";
-	json += "\"mode\":\"" + JsonEscapeUtf8(sz4) + "\",";
-	json += "\"type\":\"" + JsonEscapeUtf8(sz5) + "\",";
-	json += "\"bitrate\":\"" + JsonEscapeUtf8(sz6) + "\",";
-	json += "\"message\":\"" + JsonEscapeUtf8(sz7) + "\",";
-	json += "\"label\":\"" + JsonEscapeUtf8(szLabel) + "\",";
-	json += "\"match\":" + std::string(bMatch ? "true" : "false") + ",";
-	json += "\"monitor_only\":" + std::string(bMonitorOnly ? "true" : "false");
-	json += "}";
-
-	HTTPPOSTENTRY entry;
-	entry.enqueueTick = GetTickCount64();
-	entry.payload = json;
-
-	EnterCriticalSection(&g_httpLock);
-	if (g_httpQueue.size() >= (size_t)cfg.queueMax)
+	try
 	{
-		g_httpQueue.pop_front();
-		OUTPUTDEBUGMSG((("HTTP POST queue: queue full, dropping oldest item")));
-	}
-	g_httpQueue.push_back(entry);
-	LeaveCriticalSection(&g_httpLock);
+		HTTPPOSTCONFIG cfg;
+		EnterCriticalSection(&g_httpLock);
+		cfg = g_httpConfig;
+		LeaveCriticalSection(&g_httpLock);
 
-	SetEvent(g_httpEvent);
-	return 0;
+		if (!cfg.enabled || cfg.url.empty()) return 0;
+
+		nlohmann::json j;
+		j["address"] = sz1 ? sz1 : "";
+		j["time"] = sz2 ? sz2 : "";
+		j["date"] = sz3 ? sz3 : "";
+		j["mode"] = sz4 ? sz4 : "";
+		j["type"] = sz5 ? sz5 : "";
+		j["bitrate"] = sz6 ? sz6 : "";
+		j["message"] = sz7 ? sz7 : "";
+		j["label"] = szLabel ? szLabel : "";
+		j["match"] = (bMatch != 0);
+		j["monitor_only"] = (bMonitorOnly != 0);
+
+		const std::string json = j.dump();
+
+		HTTPPOSTENTRY entry;
+		entry.enqueueTick = GetTickCount64();
+		entry.payload = json;
+
+		EnterCriticalSection(&g_httpLock);
+		if (g_httpQueue.size() >= (size_t)cfg.queueMax)
+		{
+			g_httpQueue.pop_front();
+			OUTPUTDEBUGMSG((("HTTP POST queue: queue full, dropping oldest item")));
+		}
+		g_httpQueue.push_back(entry);
+		LeaveCriticalSection(&g_httpLock);
+
+		SetEvent(g_httpEvent);
+		return 0;
+	}
+	catch (const std::exception& e)
+	{
+		OUTPUTDEBUGMSG(("HTTP POST exception: "));
+		OUTPUTDEBUGMSG((e.what()));
+		return 0;
+	}
+	catch (...)
+	{
+		OUTPUTDEBUGMSG(("HTTP POST unknown exception"));
+		return 0;
+	}
 }
