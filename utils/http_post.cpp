@@ -2,10 +2,12 @@
 #include <winhttp.h>
 #include <wincrypt.h>
 
+#include <cstdio>
 #include <deque>
 #include <string>
 
 #include "http_post.h"
+#include "../headers/pdw.h"
 #include "../utils/debug.h"
 
 #include <nlohmann/json.hpp>
@@ -40,6 +42,85 @@ static BOOL g_httpStateInit = FALSE;
 static CRITICAL_SECTION g_httpLock;
 static HTTPPOSTCONFIG g_httpConfig;
 static std::deque<HTTPPOSTENTRY> g_httpQueue;
+
+static int Normalize2DigitYear(int y)
+{
+    if (y >= 0 && y <= 69) return 2000 + y;
+    if (y >= 70 && y <= 99) return 1900 + y;
+    return y;
+}
+
+static bool ParseDateByProfileFormat(const char* s, int dateFormat, int& y, int& m, int& d)
+{
+    int a = 0, b = 0, c = 0;
+    char sep1 = 0, sep2 = 0;
+
+    if (!s || !*s) return false;
+    if (std::sscanf(s, "%d%c%d%c%d", &a, &sep1, &b, &sep2, &c) != 5) return false;
+    if (sep1 != sep2) return false;
+
+    y = m = d = 0;
+
+    switch (dateFormat)
+    {
+        case 0: // dd-mm-yy
+            d = a; m = b; y = Normalize2DigitYear(c);
+            break;
+        case 1: // mm-dd-yy
+            m = a; d = b; y = Normalize2DigitYear(c);
+            break;
+        case 2: // yy-mm-dd
+            y = Normalize2DigitYear(a); m = b; d = c;
+            break;
+        default:
+            return false;
+    }
+
+    return (y >= 1601 && m >= 1 && m <= 12 && d >= 1 && d <= 31);
+}
+
+static bool ParseTimeHHMMSS(const char* s, int& hh, int& mm, int& ss)
+{
+    hh = mm = ss = 0;
+    if (!s || !*s) return false;
+    return std::sscanf(s, "%d:%d:%d", &hh, &mm, &ss) >= 2;
+}
+
+static std::string BuildIso8601Timestamp(const char* szDate, const char* szTime, const int dateFormat)
+{
+    int y, m, d, hh, mm, ss;
+    if (!ParseDateByProfileFormat(szDate, dateFormat, y, m, d))
+        return "";
+    if (!ParseTimeHHMMSS(szTime, hh, mm, ss))
+        return "";
+
+    char base[32];
+    std::snprintf(base, sizeof(base), "%04d-%02d-%02dT%02d:%02d:%02d", y, m, d, hh, mm, ss);
+
+    TIME_ZONE_INFORMATION tzi;
+    DWORD tzId = GetTimeZoneInformation(&tzi);
+
+    LONG biasMinutes = tzi.Bias;
+    if (tzId == TIME_ZONE_ID_STANDARD)
+        biasMinutes += tzi.StandardBias;
+    else if (tzId == TIME_ZONE_ID_DAYLIGHT)
+        biasMinutes += tzi.DaylightBias;
+
+    int offsetMinutes = -biasMinutes;
+    char sign = '+';
+    if (offsetMinutes < 0)
+    {
+        sign = '-';
+        offsetMinutes = -offsetMinutes;
+    }
+
+    char tzbuf[8];
+    std::snprintf(tzbuf, sizeof(tzbuf), "%c%02d:%02d", sign, offsetMinutes / 60, offsetMinutes % 60);
+
+    std::string out = base;
+    out += tzbuf;
+    return out;
+}
 
 static int ClampQueueMax(int queueMax)
 {
@@ -377,29 +458,29 @@ void HttpPostShutdown()
 	HttpPostInit(0, "", 0, "", "", HTTPPOST_DEFAULT_QUEUE_MAX, HTTPPOST_DEFAULT_TTL_SEC);
 }
 
-int HttpPostQueueMessage(int bMatch, int bMonitorOnly,
-	const char *sz1, const char *sz2, const char *sz3, const char *sz4,
-	const char *sz5, const char *sz6, const char *sz7, const char *szLabel)
+int HttpPostQueueMessage(const int bMatch, const int bMonitorOnly,
+	const char *szCapcode, const char *szTime, const char *szDate, const char *szMode,
+	const char *szType, const char *szBitrate, const char *szMessage, const char *szLabel)
 {
 	EnsureHttpState();
 
 	try
 	{
-		HTTPPOSTCONFIG cfg;
 		EnterCriticalSection(&g_httpLock);
-		cfg = g_httpConfig;
+		const HTTPPOSTCONFIG cfg = g_httpConfig;
 		LeaveCriticalSection(&g_httpLock);
 
 		if (!cfg.enabled || cfg.url.empty()) return 0;
 
 		nlohmann::json j;
-		j["address"] = sz1 ? sz1 : "";
-		j["time"] = sz2 ? sz2 : "";
-		j["date"] = sz3 ? sz3 : "";
-		j["mode"] = sz4 ? sz4 : "";
-		j["type"] = sz5 ? sz5 : "";
-		j["bitrate"] = sz6 ? sz6 : "";
-		j["message"] = sz7 ? sz7 : "";
+		j["address"] = szCapcode ? szCapcode : "";
+		j["time"] = szTime ? szTime : "";
+		j["date"] = szDate ? szDate : "";
+		j["timestamp"] = BuildIso8601Timestamp(szDate, szTime, Profile.DateFormat);
+		j["mode"] = szMode ? szMode : "";
+		j["type"] = szType ? szType : "";
+		j["bitrate"] = szBitrate ? szBitrate : "";
+		j["message"] = szMessage ? szMessage : "";
 		j["label"] = szLabel ? szLabel : "";
 		j["match"] = (bMatch != 0);
 		j["monitor_only"] = (bMonitorOnly != 0);
@@ -411,7 +492,7 @@ int HttpPostQueueMessage(int bMatch, int bMonitorOnly,
 		entry.payload = json;
 
 		EnterCriticalSection(&g_httpLock);
-		if (g_httpQueue.size() >= (size_t)cfg.queueMax)
+		if (g_httpQueue.size() >= static_cast<size_t>(cfg.queueMax))
 		{
 			g_httpQueue.pop_front();
 			OUTPUTDEBUGMSG((("HTTP POST queue: queue full, dropping oldest item")));
