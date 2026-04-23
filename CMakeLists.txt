@@ -3,7 +3,10 @@
 # Base build script for building with cmake (http://www.cmake.org)
 
 cmake_minimum_required( VERSION 3.5 )
-project( PDW )
+project(PDW LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Enforce Win32 (x86)
 if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
@@ -61,6 +64,8 @@ set( PDW_SRCS
         sound_in.cpp
 )
 
+find_package(nlohmann_json CONFIG REQUIRED)
+
 # Create executable
 add_executable( PDW WIN32
         ${PDW_INCLUDES}
@@ -68,10 +73,12 @@ add_executable( PDW WIN32
 )
 
 # Required libraries
-target_link_libraries( PDW
+target_link_libraries( PDW PRIVATE
+        nlohmann_json::nlohmann_json
         Comctl32.lib
         Winmm.lib
         Ws2_32.lib
+        Winhttp.lib
         libssl_static.lib
         libcrypto_static.lib
         legacy_stdio_definitions.lib

@@ -17,6 +17,7 @@
 #include "headers\helper_funcs.h"
 #include "utils\binary.h"
 #include "utils\smtp.h"
+#include "utils\http_post.h"
 
 #define FILTER_PARAM_LEN	500
 #define MAXIMUM_GROUPSIZE	1000
@@ -188,15 +189,15 @@ void display_show_char(PaneStruct *pane, char cin)
 	{
 		if (cin == 0)
 		{
-			message_buffer[iMessageIndex] = '·';
-			mobitex_buffer[iMessageIndex] = '·';
+			message_buffer[iMessageIndex] = 'ï¿½';
+			mobitex_buffer[iMessageIndex] = 'ï¿½';
 		}
 		else if ((cin > 0) && (cin < 32))
 		{
 			message_buffer[iMessageIndex] = cin+32;
 			mobitex_buffer[iMessageIndex] = cin;		// Keep original characters
 		}
-		else if ((cin > 126) && (cin != '»'))
+		else if ((cin > 126) && (cin != 'ï¿½'))
 		{
 			message_buffer[iMessageIndex] = ' ';
 			mobitex_buffer[iMessageIndex] = cin;		// Keep original characters
@@ -211,7 +212,7 @@ void display_show_char(PaneStruct *pane, char cin)
 	{
 		if (cin == '\n')
 		{
-			cin = '»';	// PH: Convert 'new line' to '»'
+			cin = 'ï¿½';	// PH: Convert 'new line' to 'ï¿½'
 		}
 		else if (cin > 127)
 		{
@@ -956,7 +957,7 @@ void ShowMessage()
 								}
 							}
 						}
-						else if (ch == '»')		// Check for linefeed character '»'
+						else if (ch == 'ï¿½')		// Check for linefeed character 'ï¿½'
 						{
 							if (Profile.Linefeed)
 							{
@@ -1318,6 +1319,19 @@ void ShowMessage()
 	{
 		SendMail(0, bMATCH, bMONITOR_ONLY,
 					bMATCH ? Profile.filters[iMatch].smtp : 0,	// if no iMatch, smtp=0
+					Current_MSG[MSG_CAPCODE],
+					Current_MSG[MSG_TIME],
+					Current_MSG[MSG_DATE],
+					Current_MSG[MSG_MODE],
+					Current_MSG[MSG_TYPE],
+					Current_MSG[MSG_BITRATE],
+					iMOBITEX ? Current_MSG[MSG_MOBITEX] : Current_MSG[MSG_MESSAGE],
+					szCurrentLabel[0]);
+	}
+
+	if (Profile.http_post_enabled)
+	{
+		HttpPostQueueMessage(bMATCH, bMONITOR_ONLY,
 					Current_MSG[MSG_CAPCODE],
 					Current_MSG[MSG_TIME],
 					Current_MSG[MSG_DATE],
@@ -2119,7 +2133,7 @@ void CollectLogfileLine(char *string, bool bFilter)
 					{
 						for (int pos=0; Current_MSG[MSG_MOBITEX][pos]!=0; pos++)
 						{
-							if (Current_MSG[MSG_MOBITEX][pos] == '»')
+							if (Current_MSG[MSG_MOBITEX][pos] == 'ï¿½')
 							{
 								strcat(szLogFileLine, "\n");
 								for (int i=0; i<spacing+1; i++) strcat(szLogFileLine, " ");
@@ -2132,11 +2146,11 @@ void CollectLogfileLine(char *string, bool bFilter)
 						strcat(szLogFileLine, Current_MSG[MSG_MESSAGE]);
 					}
 				}
-				else if ((strstr(Current_MSG[MSG_MESSAGE], "»") != 0) && Profile.Linefeed)
+				else if ((strstr(Current_MSG[MSG_MESSAGE], "ï¿½") != 0) && Profile.Linefeed)
 				{
 					for (int pos=0; Current_MSG[MSG_MESSAGE][pos]!=0; pos++)
 					{
-						if (Current_MSG[MSG_MESSAGE][pos] == '»')
+						if (Current_MSG[MSG_MESSAGE][pos] == 'ï¿½')
 						{
 							strcat(szLogFileLine, "\n");
 							for (int i=0; i<spacing+1; i++) strcat(szLogFileLine, " ");

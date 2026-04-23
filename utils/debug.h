@@ -8,7 +8,7 @@ extern int	nDebugNum ;
 #if defined _DEBUG || defined DBG
 
 
-extern int DebugPrintf(char *fmt,...) ;
+extern int DebugPrintf(const char *fmt,...) ;
 
 
 #define OUTPUTDEBUGMSG(dprintf_exp)			((void) (DebugPrintf dprintf_exp))

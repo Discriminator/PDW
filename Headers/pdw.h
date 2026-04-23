@@ -11,6 +11,7 @@
 #define FILTER_FILE_LEN     128	// PH: was 256
 
 #define MAX_STR_LEN			5120
+#define HTTP_POST_URL_LEN	512
 
 enum FILTER_TYPE {	UNUSED_FILTER  = 0,
 					FLEX_FILTER    = 1,
@@ -187,6 +188,14 @@ typedef struct
 	char szMailPassword[MAIL_TEXT_LEN] ;
 	int	 iMailPort ;
 	int	 nMailOptions ;
+
+	int  http_post_enabled;
+	int  http_post_auth;
+	char http_post_url[HTTP_POST_URL_LEN];
+	char http_post_user[MAIL_TEXT_LEN];
+	char http_post_password[MAIL_TEXT_LEN];
+	int  http_post_queue_max;
+	int  http_post_queue_ttl;
 
 	COLORREF color_background;
 	COLORREF color_address;
@@ -420,6 +429,7 @@ BOOL FAR PASCAL FilterFindDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 BOOL FAR PASCAL FilterCheckDuplicateDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL FAR PASCAL MonStatDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL FAR PASCAL MailDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL FAR PASCAL HttpPostDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL NEAR SetTitle(HWND hWnd, TCHAR *cTitle);
 
 BOOL ErrorMessageBox(LPCTSTR lpszText, LPCTSTR lpszTitle, LPCTSTR lpszFile, INT Line);

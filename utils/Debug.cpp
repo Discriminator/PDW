@@ -18,7 +18,7 @@ int	nDebugNum ;
 
 char szDebug[MAX_DEBUG] ;
 
-int DebugPrintf(char *fmt,...)
+int DebugPrintf(const char *fmt,...)
 {
 	int	len ;
     va_list marker;

@@ -10,26 +10,35 @@ jobs:
   build:
     runs-on: windows-latest
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.arch == 'Win32' && 'x86-windows' || 'x64-windows' }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure CMake (Win32 / Release)
+      - name: Install Ninja and Git
         shell: pwsh
         run: |
+          choco install ninja -y --no-progress
+
+      - name: Clone vcpkg
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
+
+      - name: Configure CMake
+        shell: pwsh
+        run: >
           cmake -S . -B build `
             -G "Visual Studio 17 2022" `
             -A Win32 `
-            -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+          -DVCPKG_TARGET_TRIPLET=${{ env.VCPKG_DEFAULT_TRIPLET }}
 
       - name: Build
         shell: pwsh
-        run: |
-          cmake --build build --config Release --target PDW
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PDW-Win32-Release
-          path: build\Release\PDW.exe
-          if-no-files-found: error
+        run: cmake --build build --config Release
